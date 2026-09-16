@@ -1,1 +1,25 @@
-/* You can add global styles to this file, and also import other style files */
+:root {
+  --primary-red: #c61a09;
+  --dark-red: #8f1205;
+  --paper-bg: #fcfbf7;
+  --ink-black: #1a1a1a;
+  --ink-muted: #555555;
+  --border-rule: #d4cfc4;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Hind Siliguri', sans-serif;
+  background-color: var(--paper-bg);
+  color: var(--ink-black);
+  line-height: 1.6;
+}
+
+h1, h2, h3, .masthead {
+  font-family: 'Noto Serif Bengali', serif;
+}
