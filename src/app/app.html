@@ -1,131 +1,305 @@
-<div class="page-container">
-  <!-- Top Bar -->
-  <div class="top-bar">
-    <span>ভারতের কমিউনিস্ট পার্টি (মার্কসবাদী-লেনিনবাদী) লিবারেশন — পশ্চিমবঙ্গ রাজ্য কমিটি</span>
-    <span>বুধবার, ১৬ সেপ্টেম্বর ২০২৬</span>
-  </div>
-
-  <!-- 3. Breaking News Ticker -->
-  <div class="ticker-container">
-    <div class="ticker-badge">জরুরি সংবাদ</div>
-    <div class="ticker-text">
-      <marquee scrollamount="5" onmouseover="this.stop();" onmouseout="this.start();">
-        <span *ngFor="let item of breakingNews()" class="ticker-item">
-          ★ {{ item }} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-        </span>
-      </marquee>
-    </div>
-  </div>
-
-  <!-- Newspaper Masthead -->
-  <header class="masthead-container">
-    <div class="sister-papers">
-      <span>English: <em>Liberation</em></span>
-      <span>Hindi: <em>Lokyudh</em></span>
-      <span>Bengali: <strong>আজকের দেশব্রতী</strong></span>
-    </div>
-
-    <div class="masthead">আজকের দেশব্রতী</div>
-    <div class="tagline">শ্রমজীবী মানুষের বিপ্লবী মুখপত্র | Ajker Deshbrati</div>
-
-    <!-- 1. Category Filtering Navigation -->
-    <nav class="news-nav">
-      <a *ngFor="let nav of navCategories"
-         href="#"
-         [class.active]="selectedCategory() === nav.key"
-         (click)="filterByCategory(nav.key, $event)">
-        {{ nav.label }}
-      </a>
-    </nav>
-
-    <!-- 3. Live Keyword Search Bar -->
-    <div class="search-box">
-      <input
-        type="text"
-        [(ngModel)]="searchTerm"
-        (input)="onSearch(searchTerm)"
-        placeholder="সংবাদ, প্রতিবেদন বা লেখক খুঁজুন..."
-      />
-      <button *ngIf="searchTerm" (click)="clearSearch()" class="clear-search-btn">মুছুন ✕</button>
-    </div>
-  </header>
-
-  <!-- Active Filter Notification -->
-  <div class="active-filter-banner" *ngIf="searchTerm || selectedCategory() !== 'all'">
-    <span>
-      ফিল্টার: <strong>{{ selectedCategory() !== 'all' ? selectedCategory() : 'সকল' }}</strong>
-      <ng-container *ngIf="searchTerm"> | অনুসন্ধান: "<strong>{{ searchTerm }}</strong>"</ng-container>
-    </span>
-    <button (click)="clearSearch(); newsService.setCategory('all')" class="reset-filter-btn">
-      ফিল্টার বাতিল করুন
-    </button>
-  </div>
-
-  <!-- 2. Historical Archives Section View -->
-  <section class="archive-section" *ngIf="isArchiveView">
-    <div class="section-heading">
-      ঐতিহাসিক আর্কাইভ সংগ্রহশালা (১৯৬৭–বর্তমান)
-    </div>
-    <p class="archive-intro">
-      ষাটের দশকের বিপ্লবী উত্তাল অধ্যায় থেকে শুরু করে জরুরি অবস্থার প্রতিরোধ এবং বর্তমান গণসংগ্রাম — ‘দেশব্রতী’, ‘Liberation’ ও ‘Lokyudh’-এর অমূল্য ঐতিহাসিক সংস্করণসমূহ।
-    </p>
-
-    <div class="archive-grid">
-      <div class="archive-card" *ngFor="let item of archives()">
-        <div class="archive-year">{{ item.year }}</div>
-        <div class="archive-pub-badge" [attr.data-pub]="item.sisterPublication">{{ item.sisterPublication }}</div>
-        <h3 class="archive-title">{{ item.title }}</h3>
-        <div class="archive-edition">{{ item.edition }}</div>
-        <p class="archive-desc">{{ item.description }}</p>
-        <button class="archive-btn" *ngIf="item.pdfAvailable">ঐতিহাসিক দলিল খুলুন (PDF) 🗎</button>
+<div class="app-wrapper" [class.dark-mode]="isDarkMode()">
+  <div class="page-container">
+    
+    <!-- Top Utility Bar with Vol/Issue and E-Paper -->
+    <div class="top-bar">
+      <div class="top-left">
+        <span class="party-name">ভারতের কমিউনিস্ট পার্টি (মার্কসবাদী-লেনিনবাদী) লিবারেশন</span>
+        <span class="vol-issue">বর্ষ ৫৮ | সংখ্যা ১২</span>
+      </div>
+      <div class="top-right">
+        <span>বুধবার, ১৬ সেপ্টেম্বর ২০২৬</span>
+        <button class="epaper-btn" (click)="downloadEPaper()">
+          ই-পেপার PDF 📰
+        </button>
+        <button class="theme-toggle-btn" (click)="toggleTheme()" [title]="isDarkMode() ? 'লাইট মোড' : 'ডার্ক মোড'">
+          {{ isDarkMode() ? '☀️ দিন' : '🌙 রাত' }}
+        </button>
       </div>
     </div>
-  </section>
 
-  <!-- Main Articles Layout (Active when not in full archive view) -->
-  <main class="content-grid" *ngIf="!isArchiveView">
-    <!-- Zero Search Results Feedback -->
-    <div *ngIf="filteredArticles().length === 0" class="no-results">
-      কোনো প্রতিবেদন পাওয়া যায়নি। অনুসন্ধান বা ফিল্টার পরিবর্তন করে দেখুন।
+    <!-- Urgent Breaking News Ticker -->
+    <div class="ticker-container">
+      <div class="ticker-badge">জরুরি সংবাদ</div>
+      <div class="ticker-text">
+        <marquee scrollamount="5" onmouseover="this.stop();" onmouseout="this.start();">
+          <span *ngFor="let item of breakingNews()" class="ticker-item">
+            ★ {{ item }} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+          </span>
+        </marquee>
+      </div>
     </div>
 
-    <!-- Lead / Front Page Feature Article -->
-    <section class="lead-section" *ngIf="leadArticle as lead">
-      <div class="badge">{{ lead.categoryLabel }}</div>
-      <h1 class="lead-title" (click)="openArticle(lead)">{{ lead.title }}</h1>
-      <h3 *ngIf="lead.subtitle" class="lead-subtitle">{{ lead.subtitle }}</h3>
-      <div class="byline">প্রতিবেদন: {{ lead.author }} | {{ lead.date }}</div>
-      <p class="lead-excerpt">{{ lead.excerpt }}</p>
-      <button class="read-btn" (click)="openArticle(lead)">সম্পূর্ণ প্রতিবেদন পড়ুন →</button>
+    <!-- Newspaper Masthead -->
+    <header class="masthead-container">
+      <div class="sister-papers">
+        <span>English: <em>Liberation</em></span>
+        <span>Hindi: <em>Lokyudh</em></span>
+        <span>Bengali: <strong>আজকের দেশব্রতী</strong></span>
+      </div>
+
+      <div class="masthead-title-row">
+        <h1 class="masthead">আজকের দেশব্রতী</h1>
+      </div>
+      <div class="tagline">শ্রমজীবী মানুষের বিপ্লবী মুখপত্র | The Voice of Working Class Struggles</div>
+
+      <!-- Category Navigation -->
+      <nav class="news-nav">
+        <a *ngFor="let nav of navCategories"
+           href="#"
+           [class.active]="selectedCategory() === nav.key"
+           (click)="filterByCategory(nav.key, $event)">
+          {{ nav.label }}
+        </a>
+      </nav>
+
+      <!-- Live Search Bar -->
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          (input)="onSearch(searchTerm)"
+          placeholder="সংবাদ, প্রতিবেদন, কৃষক আন্দোলন বা লেখক খুঁজুন..."
+        />
+        <button *ngIf="searchTerm" (click)="clearSearch()" class="clear-search-btn">✕</button>
+      </div>
+    </header>
+
+    <!-- Active Filter Notification -->
+    <div class="active-filter-banner" *ngIf="searchTerm || selectedCategory() !== 'all'">
+      <span>
+        বিভাগ: <strong>{{ selectedCategory() !== 'all' ? selectedCategory() : 'সকল' }}</strong>
+        <ng-container *ngIf="searchTerm"> | অনুসন্ধান: "<strong>{{ searchTerm }}</strong>"</ng-container>
+      </span>
+      <button (click)="clearSearch(); newsService.setCategory('all')" class="reset-filter-btn">
+        ফিল্টার বাতিল করুন
+      </button>
+    </div>
+
+    <!-- Historical Archives View -->
+    <section class="archive-section" *ngIf="isArchiveView">
+      <div class="section-heading">
+        ঐতিহাসিক আর্কাইভ সংগ্রহশালা (১৯৬৯–বর্তমান)
+      </div>
+      <p class="archive-intro">
+        ষাটের দশকের বিপ্লবী উত্তাল অধ্যায় থেকে শুরু করে জরুরি অবস্থার প্রতিরোধ এবং বর্তমান গণসংগ্রাম — ‘দেশব্রতী’, ‘Liberation’ ও ‘Lokyudh’-এর সংরক্ষিত ঐতিহাসিক সংস্করণসমূহ।
+      </p>
+
+      <div class="archive-grid">
+        <div class="archive-card" *ngFor="let item of archives()">
+          <div class="archive-img-wrap" *ngIf="item.coverImage">
+            <img [src]="item.coverImage" [alt]="item.title" class="archive-img" />
+          </div>
+          <div class="archive-content">
+            <div class="archive-meta">
+              <span class="archive-year">{{ item.year }}</span>
+              <span class="archive-pub-badge">{{ item.sisterPublication }}</span>
+            </div>
+            <h3 class="archive-title">{{ item.title }}</h3>
+            <div class="archive-edition">{{ item.edition }}</div>
+            <p class="archive-desc">{{ item.description }}</p>
+            <button class="archive-btn" *ngIf="item.pdfAvailable">ঐতিহাসিক দলিল খুলুন (PDF) 🗎</button>
+          </div>
+        </div>
+      </div>
     </section>
 
-    <!-- Side Column Articles -->
-    <aside class="sidebar-section" *ngIf="filteredArticles().length > 0">
-      <div class="section-heading">সাম্প্রতিক প্রতিবেদন</div>
+    <!-- Main Frontpage Layout (When not archive view) -->
+    <main class="content-layout" *ngIf="!isArchiveView">
+      <div *ngIf="filteredArticles().length === 0" class="no-results">
+        কোনো প্রতিবেদন পাওয়া যায়নি। অনুসন্ধান বা ফিল্টার পরিবর্তন করে দেখুন।
+      </div>
 
-      <article class="article-card" *ngFor="let item of otherArticles" (click)="openArticle(item)">
-        <span class="category-tag">{{ item.categoryLabel }}</span>
-        <h2 class="card-title">{{ item.title }}</h2>
-        <p class="card-excerpt">{{ item.excerpt }}</p>
-        <span class="card-date">{{ item.date }}</span>
-      </article>
-    </aside>
-  </main>
+      <div class="newspaper-columns" *ngIf="filteredArticles().length > 0">
+        
+        <!-- Left Main Area: Hero Lead + 2-Column Subgrid -->
+        <div class="primary-column">
+          
+          <!-- 1. Big Hero Card with Lead Photo -->
+          <article class="hero-card" *ngIf="leadArticle as lead">
+            <div class="hero-image-wrapper" *ngIf="lead.imageUrl">
+              <img [src]="lead.imageUrl" [alt]="lead.title" class="hero-image" (click)="openArticle(lead)" />
+              <div class="photo-caption" *ngIf="lead.imageCaption">
+                <span>{{ lead.imageCaption }}</span>
+                <span class="photo-credit">{{ lead.imageCredit }}</span>
+              </div>
+            </div>
 
-  <!-- Full Article Reading Modal -->
-  <div class="modal-backdrop" *ngIf="selectedArticle() as article" (click)="closeModal()">
-    <div class="modal-content" (click)="$event.stopPropagation()">
-      <button class="close-btn" (click)="closeModal()">×</button>
-      <span class="badge">{{ article.categoryLabel }}</span>
-      <h1 class="modal-title">{{ article.title }}</h1>
-      <div class="byline">{{ article.author }} | {{ article.date }}</div>
-      <p class="modal-text">{{ article.content }}</p>
+            <div class="hero-body">
+              <div class="badge-row">
+                <span class="badge">{{ lead.categoryLabel }}</span>
+                <span class="read-time">{{ lead.readingTime }}</span>
+              </div>
+              <h2 class="hero-title" (click)="openArticle(lead)">{{ lead.title }}</h2>
+              <h3 *ngIf="lead.subtitle" class="hero-subtitle">{{ lead.subtitle }}</h3>
+              <div class="byline">প্রতিবেদন: {{ lead.author }} | {{ lead.date }}</div>
+              <p class="hero-excerpt">{{ lead.excerpt }}</p>
+              <button class="read-btn" (click)="openArticle(lead)">সম্পূর্ণ প্রতিবেদন ও বিশ্লেষণ পড়ুন →</button>
+            </div>
+          </article>
+
+          <!-- 2. Two-Column Sub-Lead Section -->
+          <div class="sub-lead-grid" *ngIf="secondaryArticles.length > 0">
+            <div class="sub-card" *ngFor="let item of secondaryArticles" (click)="openArticle(item)">
+              <div class="sub-card-image" *ngIf="item.imageUrl">
+                <img [src]="item.imageUrl" [alt]="item.title" />
+              </div>
+              <div class="sub-card-content">
+                <span class="category-tag">{{ item.categoryLabel }}</span>
+                <h3 class="sub-card-title">{{ item.title }}</h3>
+                <p class="sub-card-excerpt">{{ item.excerpt }}</p>
+                <div class="card-footer-meta">
+                  <span>{{ item.author }}</span>
+                  <span>{{ item.readingTime }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Right Side: Opinions, Editorials & Briefs -->
+        <aside class="sidebar-column">
+          <div class="section-heading">মতাদর্শ, বিশ্লেষণ ও সংক্ষিপ্ত বার্তা</div>
+
+          <div class="text-feed">
+            <article class="feed-item" *ngFor="let item of textOnlyArticles" (click)="openArticle(item)">
+              <div class="feed-header">
+                <span class="category-tag">{{ item.categoryLabel }}</span>
+                <span class="feed-time">{{ item.readingTime }}</span>
+              </div>
+              <h4 class="feed-title">{{ item.title }}</h4>
+              <p class="feed-excerpt">{{ item.excerpt }}</p>
+              <div class="feed-byline">{{ item.author }} | {{ item.date }}</div>
+            </article>
+          </div>
+
+          <!-- Movement Pamphlet Callout Banner -->
+          <div class="pamphlet-box">
+            <h4>🚩 গণসংগ্রামে শামিল হোন</h4>
+            <p>আপনার অঞ্চলের কৃষক-শ্রমিক আন্দোলন বা ট্রেড ইউনিয়নের সংবাদ ও তথ্য পাঠাতে যোগাযোগ করুন আমাদের ব্যুরোতে।</p>
+            <button class="pamphlet-btn">সংবাদ পাঠান ✉</button>
+          </div>
+        </aside>
+
+      </div>
+    </main>
+
+    <!-- Polished Reader Modal -->
+    <div class="modal-backdrop" *ngIf="selectedArticle() as article" (click)="closeModal()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        
+        <!-- Reader Controls -->
+        <div class="modal-top-controls">
+          <div class="font-controls">
+            <span class="font-label">হরফের মাপ:</span>
+            <button (click)="changeFontSize(-2)">A-</button>
+            <button (click)="changeFontSize(2)">A+</button>
+          </div>
+          <button class="close-btn" (click)="closeModal()">✕</button>
+        </div>
+
+        <!-- Article Content -->
+        <div class="modal-scroll-area">
+          <div class="badge-row">
+            <span class="badge">{{ article.categoryLabel }}</span>
+            <span class="read-time">{{ article.readingTime }}</span>
+          </div>
+
+          <h1 class="modal-title">{{ article.title }}</h1>
+          <h3 *ngIf="article.subtitle" class="modal-subtitle">{{ article.subtitle }}</h3>
+          
+          <div class="byline">{{ article.author }} | {{ article.date }}</div>
+
+          <!-- Social Share Bar -->
+          <div class="share-bar">
+            <span class="share-title">শেয়ার করুন:</span>
+            <button class="share-btn wa" (click)="shareArticle('whatsapp')">WhatsApp</button>
+            <button class="share-btn fb" (click)="shareArticle('facebook')">Facebook</button>
+            <button class="share-btn tw" (click)="shareArticle('twitter')">X / Twitter</button>
+            <button class="share-btn cp" (click)="shareArticle('copy')">লিংক কপি</button>
+            <span class="copied-pill" *ngIf="copyNotification()">কপি হয়েছে!</span>
+          </div>
+
+          <!-- Image in Modal if available -->
+          <div class="modal-image-box" *ngIf="article.imageUrl">
+            <img [src]="article.imageUrl" [alt]="article.title" />
+            <p class="modal-caption" *ngIf="article.imageCaption">{{ article.imageCaption }}</p>
+          </div>
+
+          <!-- Article Text with Dynamic Font Size -->
+          <div class="modal-body-text" [style.font-size.px]="readerFontSize()">
+            {{ article.content }}
+          </div>
+
+          <!-- Related Stories Section -->
+          <div class="related-section" *ngIf="relatedArticles.length > 0">
+            <h4 class="related-heading">আরও পড়ুন</h4>
+            <div class="related-grid">
+              <div class="related-card" *ngFor="let rel of relatedArticles" (click)="openArticle(rel)">
+                <span class="related-cat">{{ rel.categoryLabel }}</span>
+                <h5>{{ rel.title }}</h5>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
     </div>
-  </div>
 
-  <!-- Newspaper Footer -->
-  <footer class="footer">
-    <p><strong>আজকের দেশব্রতী</strong> — সিপিআই(এম-এল) লিবারেশন-এর রাজ্য মুখপত্র।</p>
-    <p>ঐতিহাসিক প্রকাশনা: ষাটের দশকের শেষভাগ থেকে গণসংগ্রাম, ফ্যাসিবাদবিরোধী প্রতিরোধ ও মেহনতি মানুষের মুক্তির লক্ষ্যে নিরবচ্ছিন্ন।</p>
-  </footer>
+    <!-- Complete 4-Column Editorial Footer -->
+    <footer class="main-footer">
+      <div class="footer-grid">
+        
+        <div class="footer-col brand-col">
+          <h3 class="footer-title">আজকের দেশব্রতী</h3>
+          <p class="footer-sub">শ্রমজীবী মানুষের বিপ্লবী মুখপত্র।</p>
+          <p class="footer-info">
+            পশ্চিমবঙ্গ রাজ্য কমিটি, সিপিআই(এম-এল) লিবারেশন।<br>
+            ঐতিহাসিক প্রকাশনা: ১৯৬৯ সালের বৈপ্লবিক উত্তাল দিন থেকে আজ পর্যন্ত নিরবচ্ছিন্ন।
+          </p>
+        </div>
+
+        <div class="footer-col">
+          <h4>বিভাগসমূহ</h4>
+          <ul>
+            <li><a href="#" (click)="filterByCategory('editorial', $event)">সম্পাদকীয় ও মতামত</a></li>
+            <li><a href="#" (click)="filterByCategory('movement', $event)">শ্রমিক ও কৃষক আন্দোলন</a></li>
+            <li><a href="#" (click)="filterByCategory('politics', $event)">রাজ্য রাজনীতি ও গণতন্ত্র</a></li>
+            <li><a href="#" (click)="filterByCategory('party', $event)">মতাদর্শ ও ইতিহাস</a></li>
+            <li><a href="#" (click)="filterByCategory('archive', $event)">ঐতিহাসিক আর্কাইভ</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>ভ্রাতৃপ্রতিম প্রকাশনা</h4>
+          <ul>
+            <li><a href="https://cpiml.org" target="_blank" rel="noopener">Liberation (English Organ)</a></li>
+            <li><a href="https://cpiml.org" target="_blank" rel="noopener">Lokyudh (Hindi Central Organ)</a></li>
+            <li><a href="#" (click)="downloadEPaper()">সাপ্তাহিক ই-পেপার সংরক্ষণ</a></li>
+            <li><a href="#" (click)="filterByCategory('archive', $event)">নকশালবাড়ি ঐতিহাসিক দলিল</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>যোগাযোগ ও কার্যালয়</h4>
+          <p>দেশব্রতী কার্যালয়: কলকাতা, পশ্চিমবঙ্গ</p>
+          <p>ইমেইল: deshbrati.wb@gmail.com</p>
+          <div class="footer-social-links">
+            <a href="#" class="social-tag">Facebook</a>
+            <a href="#" class="social-tag">X / Twitter</a>
+            <a href="#" class="social-tag">Telegram</a>
+            <a href="#" class="social-tag">YouTube</a>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="footer-bottom">
+        <p>© ২০২৬ আজকের দেশব্রতী। মেহনতি মানুষের মুক্তির উদ্দেশ্যে প্রচারিত। সর্বস্বত্ব গণসংগ্রামের জন্য উন্মুক্ত।</p>
+      </div>
+    </footer>
+
+  </div>
 </div>

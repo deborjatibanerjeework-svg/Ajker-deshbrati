@@ -8,6 +8,10 @@ export interface Article {
   content: string;
   author: string;
   date: string;
+  readingTime: string;
+  imageUrl?: string;
+  imageCaption?: string;
+  imageCredit?: string;
   highlight?: boolean;
 }
 
@@ -18,4 +22,5 @@ export interface HistoricalIssue {
   description: string;
   sisterPublication: 'Deshbrati' | 'Liberation' | 'Lokyudh';
   pdfAvailable: boolean;
+  coverImage?: string;
 }
